@@ -3,6 +3,9 @@
 import express from "express";
 import "reflect-metadata";
 import { ApolloServer } from "apollo-server-express";
+import { buildSchema } from "type-graphql";
+import { UserResolver } from "./UserResolver";
+import { AppDataSource } from "./data-source";
 
 const PORT = process.env.PORT || 5000;
 
@@ -10,21 +13,20 @@ const PORT = process.env.PORT || 5000;
     const app = express();
     app.get("/", (_req, res) => res.send("Hello"));
 
+    await AppDataSource.initialize();
+
     const apolloServer = new ApolloServer({
-        typeDefs: `
-        type Query {
-            hello: String!
-        }
-        `,
-        resolvers: {
-            Query: {
-                hello: () => "hello world"
-            }
-        }
-    })
+       schema: await buildSchema({
+        resolvers: [UserResolver]
+       })
+    });
+
+    await apolloServer.start();
+ 
+    apolloServer.applyMiddleware({app});
 
     app.listen(PORT, () => {
-        console.log(`Server is listening to localhost:${PORT}`)
+        console.log(`Server is listening to localhost:${PORT}`);
     })
 })()
 
