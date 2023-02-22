@@ -4,25 +4,31 @@ import { hash } from "bcryptjs";
 
 @Resolver()
 export class UserResolver{
-    @Query(()=> String)
-    hello(){
-        return 'hi!';
+    @Query(()=> [User])
+    users(){
+        return User.find();
     }
  
     @Mutation(() => Boolean)
     async register(
+        @Arg('username') username: string,
+        @Arg('firstName') firstName: string,
+        @Arg('lastName') lastName: string,
         @Arg('email') email: string,
-        @Arg ('passowrd') password: string,
+        @Arg ('password') password: string,
     ){
         const hashedPassword = await hash(password, 12);
         try{
 
         await User.insert({
+            username,
+            firstName,
+            lastName,
             email,
             password: hashedPassword 
         });
-        
         return true;
+
     } catch(error) {
         console.log(error);
         return false;
